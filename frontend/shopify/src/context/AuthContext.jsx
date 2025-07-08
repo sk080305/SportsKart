@@ -6,13 +6,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
+
  useEffect(() => {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
     try {
       const parsed = JSON.parse(storedUser);
-      setUser(parsed.user ? parsed.user : parsed); // flatten if needed
+      setUser(parsed.user ? parsed.user : parsed); 
     } catch (e) {
       console.error("Failed to parse user:", e);
       localStorage.removeItem("user");
