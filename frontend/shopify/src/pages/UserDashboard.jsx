@@ -15,7 +15,7 @@ const UserDashboard = () => {
         className="max-w-6xl mx-auto text-center"
       >
         <h1 className="text-4xl md:text-5xl font-extrabold text-yellow-400 drop-shadow-lg mb-6">
-          Welcome Back, {user?.name?.split(" ")[0] || "Athlete"}! 🏅
+          Welcome Back, {user?.user?.name?.split(" ")[0] || "Athlete"}! 🏅
         </h1>
         <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
           Manage your gear, wishlist favorites, and track your orders — all from your personal locker.
