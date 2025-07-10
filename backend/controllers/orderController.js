@@ -5,15 +5,35 @@ const Order = require('../models/order.model');
 // @access  Private
 exports.placeOrder = async (req, res) => {
   try {
-    const { items } = req.body;
+    const { items, address, paymentMethod } = req.body;
 
+    // Validate order items
     if (!items || items.length === 0) {
       return res.status(400).json({ message: "No items in the order" });
+    }
+
+    // Validate address
+    if (
+      !address ||
+      !address.fullName ||
+      !address.phone ||
+      !address.line ||
+      !address.city ||
+      !address.pincode
+    ) {
+      return res.status(400).json({ message: "Incomplete address details" });
+    }
+
+    // Validate payment method
+    if (!paymentMethod || !['UPI', 'COD', 'Card'].includes(paymentMethod)) {
+      return res.status(400).json({ message: "Invalid payment method" });
     }
 
     const order = await Order.create({
       user: req.user.id,
       items,
+      address,
+      paymentMethod,
     });
 
     res.status(201).json(order);
@@ -23,18 +43,31 @@ exports.placeOrder = async (req, res) => {
   }
 };
 
-// @desc    Get orders for logged-in user
-// @route   GET /api/orders/my
-// @access  Private
+// @desc    Get paginated orders for logged-in user
 exports.getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user.id }).populate('items.product');
-    res.json(orders);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const total = await Order.countDocuments({ user: req.user.id });
+    const orders = await Order.find({ user: req.user.id })
+      .populate('items.product')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      orders,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
   } catch (err) {
     console.error("Get user orders error:", err.message);
     res.status(500).json({ message: "Failed to fetch user orders" });
   }
 };
+
 
 // @desc    Get all orders (Admin only)
 // @route   GET /api/orders
@@ -57,6 +90,7 @@ exports.getAllOrders = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
+
     const order = await Order.findByIdAndUpdate(
       req.params.orderId,
       { status },
@@ -79,23 +113,22 @@ exports.updateOrderStatus = async (req, res) => {
 // @access  Private
 exports.cancelOrder = async (req, res) => {
   try {
-    const order = await Order.findOne({ _id: req.params.orderId, user: req.user.id });
+    const order = await Order.findOne({
+      _id: req.params.orderId,
+      user: req.user.id
+    });
 
     if (!order) {
-      console.log("Order not found");
       return res.status(404).json({ message: 'Order not found' });
     }
 
     if (order.status !== 'Pending') {
-      console.log("Order status is not Pending");
       return res.status(400).json({ message: 'Only pending orders can be cancelled' });
     }
 
     order.status = 'Cancelled';
+    await order.save();
 
-    await order.save(); // 🔥 if this throws an error, catch block will show it
-
-    
     res.json({ message: 'Order cancelled successfully' });
   } catch (err) {
     console.error('Cancel order error:', err);

@@ -1,6 +1,7 @@
 import React, { useState, Fragment } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 import { Dialog, Transition } from "@headlessui/react";
 
 const ProductCard = ({ product, role = "guest", onEdit, onDelete }) => {
@@ -8,44 +9,47 @@ const ProductCard = ({ product, role = "guest", onEdit, onDelete }) => {
   const { _id, name, price, category, imageUrl, description } = product;
   const [isOpen, setIsOpen] = useState(false);
 
+  const getToken = () => {
+    const userObj = JSON.parse(localStorage.getItem("user"));
+    return userObj?.token || userObj?.user?.token;
+  };
+
   const handleAddToCart = async () => {
+    const token = getToken();
+    if (!token) {
+      toast.warning("Please login to add items to cart");
+      navigate("/login");
+      return;
+    }
+
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const token = user?.token;
-
-      if (!token) {
-        alert("Please login to add to cart");
-        navigate("/login");
-        return;
-      }
-
       await axios.post(
-        "http://localhost:5000/api/cart",
+        "/api/cart",
         { productId: _id, quantity: 1 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      alert("Added to cart!");
+      toast.success("Item added to cart!");
     } catch (err) {
-      console.error("Error adding to cart:", err.response?.data || err.message);
-      alert("Failed to add to cart");
+      toast.error("Failed to add to cart");
+      console.error(err);
     }
   };
 
+  const imgSrc =
+    imageUrl?.startsWith("http")
+      ? imageUrl
+      : `http://localhost:5000/${imageUrl || "placeholder.png"}`;
+
   return (
     <>
-      <div className="bg-gray-800 text-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col overflow-hidden">
+      <div className="bg-gray-800 text-white rounded-xl shadow-md hover:shadow-2xl transition-all flex flex-col overflow-hidden">
         {/* Image */}
         <div
           className="w-full h-56 bg-white flex items-center justify-center cursor-pointer"
           onClick={() => setIsOpen(true)}
         >
           <img
-            src={
-              imageUrl?.startsWith("http")
-                ? imageUrl
-                : `http://localhost:5000/${imageUrl || "placeholder.png"}`
-            }
+            src={imgSrc}
             alt={name}
             className="max-h-52 w-full object-contain p-2"
             onError={(e) => (e.target.src = "/placeholder.png")}
@@ -77,7 +81,7 @@ const ProductCard = ({ product, role = "guest", onEdit, onDelete }) => {
                   onClick={() => onEdit(_id)}
                   className="px-3 py-1 text-sm rounded bg-yellow-600 hover:bg-yellow-700"
                 >
-                  ✎ Edit
+                  ✏️ Edit
                 </button>
                 <button
                   onClick={() => onDelete(_id)}
@@ -93,7 +97,7 @@ const ProductCard = ({ product, role = "guest", onEdit, onDelete }) => {
                 onClick={handleAddToCart}
                 className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-semibold"
               >
-                Add to Cart 🛒
+                🛒 Add to Cart
               </button>
             )}
 
@@ -134,22 +138,16 @@ const ProductCard = ({ product, role = "guest", onEdit, onDelete }) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-90"
             >
-              <Dialog.Panel className="bg-gray-900 rounded-xl shadow-xl max-w-2xl w-full overflow-hidden">
+              <Dialog.Panel className="bg-gray-900 text-white rounded-xl shadow-xl max-w-2xl w-full overflow-hidden border border-gray-700">
                 <img
-                  src={
-                    imageUrl?.startsWith("http")
-                      ? imageUrl
-                      : `http://localhost:5000/${imageUrl || "placeholder.png"}`
-                  }
+                  src={imgSrc}
                   alt={name}
                   className="w-full h-[500px] object-contain bg-black"
                   onError={(e) => (e.target.src = "/placeholder.png")}
                 />
-                <div className="p-4 text-white">
-                  <Dialog.Title className="text-xl font-bold">
-                    {name}
-                  </Dialog.Title>
-                  <p className="text-sm text-gray-400 mt-1">{description}</p>
+                <div className="p-4">
+                  <Dialog.Title className="text-xl font-bold">{name}</Dialog.Title>
+                  <p className="text-sm text-gray-400 mt-2">{description}</p>
                   <p className="text-lg font-semibold text-yellow-400 mt-3">
                     ₹{price}
                   </p>
@@ -158,7 +156,7 @@ const ProductCard = ({ product, role = "guest", onEdit, onDelete }) => {
                       onClick={() => setIsOpen(false)}
                       className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
                     >
-                      Close
+                      ✖ Close
                     </button>
                   </div>
                 </div>

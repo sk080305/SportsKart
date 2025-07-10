@@ -12,7 +12,7 @@ export default function AdminHome() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
       >
-        SportsKart Admin Dashboard
+        SportsKart Admin 
       </motion.h1>
 
       <motion.p

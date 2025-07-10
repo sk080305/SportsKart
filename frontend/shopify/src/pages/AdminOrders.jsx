@@ -18,25 +18,30 @@ export default function AdminOrders() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 4;
-  const totalPages = Math.ceil(orders.length / ordersPerPage);
 
-  const fetchOrders = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const token = user?.token || user?.user?.token;
+ const fetchOrders = async () => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user?.token || user?.user?.token;
 
-      const res = await axios.get("/api/orders", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const res = await axios.get("/api/orders", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      setOrders(res.data);
-    } catch (err) {
-      console.error("Fetch orders error:", err.message);
-      toast.error("Failed to fetch orders");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Sort orders by most recent first
+    const sortedOrders = res.data.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    setOrders(sortedOrders);
+  } catch (err) {
+    console.error("Fetch orders error:", err.message);
+    toast.error("Failed to fetch orders");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
@@ -64,19 +69,23 @@ export default function AdminOrders() {
     fetchOrders();
   }, []);
 
-  if (loading) {
-    return <p className="text-center mt-20 text-white">Loading orders...</p>;
-  }
-
-  // Pagination slicing
+  const totalPages = Math.ceil(orders.length / ordersPerPage);
   const indexOfLast = currentPage * ordersPerPage;
   const indexOfFirst = indexOfLast - ordersPerPage;
   const currentOrders = orders.slice(indexOfFirst, indexOfLast);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-black text-white">
+        <p className="text-lg animate-pulse">Loading orders...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pt-20 pb-16 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 px-4 text-white">
       <h2 className="text-3xl md:text-4xl font-bold text-blue-400 mb-10 text-center tracking-wide">
-        📦 Orders
+        📦  Orders
       </h2>
 
       {orders.length === 0 ? (
@@ -85,30 +94,31 @@ export default function AdminOrders() {
         <>
           <div className="space-y-8 max-w-5xl mx-auto">
             {currentOrders.map((order) => {
-              const totalAmount = order.items.reduce((acc, item) => {
-                return acc + (item.product?.price || 0) * item.quantity;
-              }, 0);
+              const totalAmount = order.items.reduce(
+                (acc, item) => acc + (item.product?.price || 0) * item.quantity,
+                0
+              );
 
               return (
                 <motion.div
                   key={order._id}
                   className="bg-gray-900/80 border border-gray-800 rounded-xl p-6 shadow-xl"
-                  animate={updatedOrderId === order._id ? { scale: [1, 1.02, 1] } : {}}
+                  animate={updatedOrderId === order._id ? { scale: [1, 1.03, 1] } : {}}
                   transition={{ duration: 0.4 }}
                   onAnimationComplete={() => setUpdatedOrderId(null)}
                 >
                   <div className="flex flex-col md:flex-row justify-between text-sm text-gray-400 mb-4 gap-2">
-                    <span>
-                      🆔 <span className="text-white">{order._id}</span>
-                    </span>
-                    <span>
-                      👤{" "}
-                      <span className="text-blue-300 font-medium">
-                        {order.user?.name || "N/A"}
-                      </span>{" "}
-                      ({order.user?.email || "N/A"})
-                    </span>
+                    <span>🆔 <span className="text-white">{order._id}</span></span>
+                    <span>👤 <span className="text-blue-300 font-medium">{order.user?.name || "N/A"}</span> ({order.user?.email || "N/A"})</span>
                   </div>
+
+                  {/* Optional Address & Payment Info */}
+                  {order.address && (
+                    <div className="text-sm text-gray-300 mb-4">
+                      📍 <span className="font-semibold">Address:</span>  {order.address.line}, {order.address.city}, {order.address.pincode} ({order.address.phone})<br />
+                      💳 <span className="font-semibold">Payment:</span> {order.paymentMethod}
+                    </div>
+                  )}
 
                   <div className="space-y-4">
                     {order.items.map((item, index) => (
@@ -125,9 +135,7 @@ export default function AdminOrders() {
                           <p className="text-white font-semibold">
                             {item.product?.name || "Unknown Product"}
                           </p>
-                          <p className="text-sm text-gray-400">
-                            Qty: {item.quantity}
-                          </p>
+                          <p className="text-sm text-gray-400">Qty: {item.quantity}</p>
                           <p className="text-sm text-green-400">
                             ₹{item.product?.price || 0}
                           </p>
@@ -149,20 +157,18 @@ export default function AdminOrders() {
                       <option value="Delivered">Delivered</option>
                       <option value="Pending">Pending</option>
                       <option value="Shipped">Shipped</option>
-                      <option value="Cancelled" disabled={order.status === "Shipped"}>
+                      <option
+                        value="Cancelled"
+                        disabled={order.status === "Shipped"}
+                      >
                         Cancelled
                       </option>
                     </select>
                   </div>
 
                   <div className="mt-4 text-sm flex justify-between text-gray-400">
-                    <span>
-                      🗓️ Placed on:{" "}
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </span>
-                    <span className="text-green-400 font-bold">
-                      Total: ₹{totalAmount}
-                    </span>
+                    <span>🗓️ Placed on: {new Date(order.createdAt).toLocaleDateString()}</span>
+                    <span className="text-green-400 font-bold">Total: ₹{totalAmount}</span>
                   </div>
                 </motion.div>
               );
@@ -176,7 +182,7 @@ export default function AdminOrders() {
               disabled={currentPage === 1}
               className="bg-gray-800 px-4 py-2 rounded disabled:opacity-50"
             >
-              ◀ 
+              ◀
             </button>
             <span className="py-2 px-4 rounded bg-gray-800">
               Page {currentPage} of {totalPages}

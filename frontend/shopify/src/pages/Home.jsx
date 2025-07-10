@@ -1,28 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import ProductCard from "../components/ProductCard";
 
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+
 export default function GuestHome() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Use requestIdleCallback if available for smoother initial load
-  useEffect(() => {
-    const fetchProducts = () => {
-      axios
-        .get("http://localhost:5000/api/products")
-        .then((res) => setProducts(res.data))
-        .catch((err) => console.error("Failed to fetch products", err))
-        .finally(() => setLoading(false));
-    };
-
-    if ("requestIdleCallback" in window) {
-      requestIdleCallback(fetchProducts);
-    } else {
-      setTimeout(fetchProducts, 300);
-    }
-  }, []);
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const res = await axios.get("http://localhost:5000/api/products");
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
   const SlantDivider = ({ color = "#facc15", flip = false }) => (
     <div
@@ -36,26 +31,36 @@ export default function GuestHome() {
     />
   );
 
+  const renderedProducts = useMemo(() => {
+    return products.map((product) => (
+      <SwiperSlide key={product._id}>
+        <ProductCard product={product} role="guest" />
+      </SwiperSlide>
+    ));
+  }, [products]);
+
   return (
     <div className="bg-gray-950 text-white font-sans">
+      {/* Promo Bar */}
       <section className="bg-yellow-500 overflow-hidden py-3 mt-12">
         <div className="animate-marquee whitespace-nowrap text-black text-sm md:text-base font-semibold tracking-wider flex gap-12">
-          <span>🚚| Free Shipping on orders above ₹999</span>
-          <span>|💰| Cash On Delivery Available</span>
-          <span>|🔁| 7-Day Return Policy</span>
-          <span>|🏆| Trusted by Athletes Nationwide</span>
-          <span>|🔥| Shop Now & Save Big</span>
+          <span>🚚 Free Shipping on orders above ₹999</span>
+          <span>💰 Cash On Delivery Available</span>
+          <span>🔁 7-Day Return Policy</span>
+          <span>🏆 Trusted by Athletes Nationwide</span>
+          <span>🔥 Shop Now & Save Big</span>
         </div>
       </section>
 
-      
-
-
       {/* Hero Section */}
-      <section
-        className="relative bg-cover bg-center h-screen"
-        style={{ backgroundImage: "url('/images/sports-tools.webp')" }}
-      >
+      <section className="relative bg-black h-screen">
+        <img
+          src="/images/sports-tools .webp"
+          alt="Hero"
+          className="absolute inset-0 w-full h-full object-cover"
+          width="1600"
+          height="900"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-black/90 to-black/60 flex items-center justify-center text-center px-6">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -72,17 +77,6 @@ export default function GuestHome() {
         </div>
       </section>
 
-      {/* Promo Marquee
-      <section className="bg-yellow-500 overflow-hidden py-3">
-        <div className="animate-marquee whitespace-nowrap text-black text-sm md:text-base font-semibold tracking-wider flex gap-12">
-          <span>🚚 Free Shipping on orders above ₹999</span>
-          <span>💰 Cash On Delivery Available</span>
-          <span>🔁 7-Day Return Policy</span>
-          <span>🏆 Trusted by Athletes Nationwide</span>
-          <span>🔥 Shop Now & Save Big</span>
-        </div>
-      </section> */}
-
       <SlantDivider color="#facc15" flip />
 
       {/* Categories */}
@@ -92,11 +86,11 @@ export default function GuestHome() {
         </h2>
         <div className="grid gap-8 px-6 max-w-6xl mx-auto grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            { name: "Cricket", image: "/images/categories/cricket.jpg" },
-            { name: "Football", image: "/images/categories/football.jpg" },
-            { name: "Badminton", image: "/images/categories/badminton.jpg" },
-            { name: "Fitness", image: "/images/categories/fitness.jpg" },
-            { name: "Tennis", image: "/images/categories/tennis.jpg" },
+            { name: "Cricket", image: "/images/categories/cricket.webp" },
+            { name: "Football", image: "/images/categories/football.webp" },
+            { name: "Badminton", image: "/images/categories/badminton.webp" },
+            { name: "Fitness", image: "/images/categories/fitness.webp" },
+            { name: "Tennis", image: "/images/categories/tennis.webp" },
           ].map((cat, i) => (
             <div
               key={i}
@@ -106,6 +100,8 @@ export default function GuestHome() {
                 src={cat.image}
                 alt={cat.name}
                 loading="lazy"
+                width="400"
+                height="300"
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -120,7 +116,7 @@ export default function GuestHome() {
 
       <SlantDivider color="#1f2937" />
 
-      {/* Product Section */}
+      {/* Trending Products Carousel */}
       <section className="py-16 px-6 max-w-7xl mx-auto bg-gray-900">
         <motion.h2
           className="text-3xl md:text-4xl font-bold text-center text-white mb-4"
@@ -134,7 +130,7 @@ export default function GuestHome() {
           Explore top-rated gear trusted by athletes and fitness lovers.
         </p>
 
-        {loading ? (
+        {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
               <div
@@ -144,19 +140,19 @@ export default function GuestHome() {
             ))}
           </div>
         ) : products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {products.map((product, i) => (
-              <motion.div
-                key={product._id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-              >
-                <ProductCard product={product} role="guest" />
-              </motion.div>
-            ))}
-          </div>
+          <Swiper
+            modules={[Navigation]}
+            navigation
+            spaceBetween={20}
+            breakpoints={{
+              320: { slidesPerView: 1 },
+              640: { slidesPerView: 2 },
+              768: { slidesPerView: 3 },
+              1024: { slidesPerView: 4 },
+            }}
+          >
+            {renderedProducts}
+          </Swiper>
         ) : (
           <p className="text-center text-gray-400">No products found.</p>
         )}

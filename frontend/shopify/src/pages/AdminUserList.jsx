@@ -11,10 +11,10 @@ const AdminUserList = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(null);
 
   const token = user?.token;
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 6;
 
@@ -24,8 +24,13 @@ const AdminUserList = () => {
       const res = await axios.get(`${backendURL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUsers(res.data);
-      setFilteredUsers(res.data);
+
+      const sortedUsers = res.data.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
+      setUsers(sortedUsers);
+      setFilteredUsers(sortedUsers);
     } catch (error) {
       toast.error("Failed to fetch users");
       console.error(error);
@@ -69,7 +74,9 @@ const AdminUserList = () => {
   return (
     <div className="min-h-screen pt-[72px] bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 px-6 py-10 text-white">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-center">👥 All Users</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-blue-400">
+          👥 Users List
+        </h1>
 
         <div className="flex flex-col sm:flex-row justify-between gap-4 items-center mb-6">
           <input
@@ -82,53 +89,63 @@ const AdminUserList = () => {
         </div>
 
         {loading ? (
-          <p className="text-gray-400">Loading users...</p>
+          <p className="text-gray-400 animate-pulse text-center mt-8">
+            Fetching users...
+          </p>
         ) : filteredUsers.length === 0 ? (
-          <p className="text-gray-500 text-center mt-10">No users found.</p>
+          <p className="text-gray-500 text-center mt-10 italic">
+            No users found.
+          </p>
         ) : (
           <>
-            <div className="overflow-x-auto shadow-md rounded-lg bg-white text-gray-800">
-              <table className="min-w-full table-auto">
-                <thead className="bg-blue-700 text-white sticky top-0 z-10">
-                  <tr>
+            <div className="overflow-x-auto shadow-md rounded-lg bg-gray-900 text-gray-100 border border-gray-700">
+
+              <table className="min-w-full table-auto divide-y divide-gray-700">
+                <thead className="bg-gray-800 text-blue-300 sticky top-0 z-10">
+
+
+                  <tr className="border-b border-gray-800 hover:bg-gray-800 transition">
+
+
                     <th className="px-6 py-3 text-left">Name</th>
                     <th className="px-6 py-3 text-left">Email</th>
                     <th className="px-6 py-3 text-left">Role</th>
                     <th className="px-6 py-3 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {currentUsers.map(({ _id, name, email, role }) => (
-                    <tr
-                      key={_id}
-                      className="border-b hover:bg-gray-100 transition"
-                    >
-                      <td className="px-6 py-4">{name}</td>
-                      <td className="px-6 py-4 break-all flex items-center gap-2">
-                        <span>{email}</span>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(email);
-                            toast.success("Email copied!");
-                          }}
-                          title="Copy email"
-                          className="text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                          📋
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 capitalize">{role}</td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => deleteUser(_id)}
-                          className="bg-red-600 hover:bg-red-700 px-3 py-1 text-white rounded-md text-sm"
-                        >
-                          🗑️ Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+               <tbody>
+  {currentUsers.map(({ _id, name, email, role }, index) => (
+    <tr
+      key={_id}
+      className="border-b border-gray-800 hover:bg-gray-800 transition"
+    >
+      <td className="px-6 py-4">{name}</td>
+      <td className="px-6 py-4 break-all flex items-center gap-2">
+        <span>{email}</span>
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(email);
+            toast.success("Email copied!");
+          }}
+          title="Copy email"
+          className="text-blue-400 hover:text-blue-600 text-sm"
+        >
+          📋
+        </button>
+      </td>
+      <td className="px-6 py-4 capitalize">{role}</td>
+      <td className="px-6 py-4 text-center">
+        <button
+          onClick={() => deleteUser(_id)}
+          className="bg-red-600 hover:bg-red-700 px-3 py-1 text-white rounded-md text-sm"
+        >
+          🗑️ Delete
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
               </table>
             </div>
 

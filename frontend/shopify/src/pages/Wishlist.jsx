@@ -67,57 +67,55 @@ const Wishlist = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h2 className="text-3xl font-bold mb-6 text-center text-purple-800">
-        My Wishlist 💖
+    <div className="min-h-screen bg-gradient-to-br from-slate-500 via-gray-900 to-black text-white px-4 py-10 pt-14">
+      <h2 className="text-4xl font-extrabold text-yellow-400 text-center mb-10 drop-shadow">
+        My Wishlist
       </h2>
 
       {loading ? (
-        <p className="text-center text-gray-600">Loading wishlist...</p>
+        <p className="text-center text-gray-400">Loading wishlist...</p>
       ) : wishlist.length === 0 ? (
-        <div className="text-center mt-20 text-gray-600">
-          <div className="text-6xl mb-3">🛒</div>
-          <h3 className="text-xl font-semibold mb-2">
-            Your wishlist is empty!
-          </h3>
-          <p className="mb-4">Start adding products you love 💖</p>
+        <div className="text-center mt-20 text-gray-400">
+          <h3 className="text-2xl font-semibold mb-2">Your wishlist is empty</h3>
+          <p className="mb-4">Start exploring products to add your favorites.</p>
           <a
             href="/products"
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
+            className="inline-block bg-yellow-500 text-black px-6 py-2 rounded hover:bg-yellow-400 transition"
           >
             Browse Products
           </a>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {wishlist.map((product) => (
             <div
               key={product._id}
-              className="bg-white border rounded-lg p-4 shadow hover:shadow-md transition"
+              className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-md hover:shadow-pink-500/20 transition flex flex-col"
             >
-              <img
-                src={product.imageUrl || product.image || "/placeholder.png"}
-                alt={product.name}
-                className="w-full h-48 object-cover rounded mb-3"
-                onError={(e) => (e.target.src = "/placeholder.png")}
-              />
-              <h3 className="text-lg font-semibold text-blue-700">{product.name}</h3>
-              <p className="text-green-600 font-bold mt-1">₹{product.price}</p>
-
-              <div className="mt-4 flex flex-col gap-2">
-                <button
-                  onClick={() => handleAddToCart(product._id)}
-                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-                >
-                  Add to Cart 🛍️
-                </button>
-                <button
-                  onClick={() => handleToggleWishlist(product._id)}
-                  className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600"
-                >
-                  Remove from Wishlist ❤️
-                </button>
+              <div className="w-full h-48 bg-black rounded mb-4 overflow-hidden flex justify-center items-center">
+                <img
+                  src={product.imageUrl || product.image || "/placeholder.png"}
+                  alt={product.name}
+                  className="object-contain h-full w-full"
+                  onError={(e) => (e.target.src = "/placeholder.png")}
+                />
               </div>
+
+              <h3 className="text-lg font-bold text-white mb-1 truncate">{product.name}</h3>
+              <p className="text-yellow-400 font-semibold mb-4">₹{product.price}</p>
+
+              <button
+                onClick={() => handleAddToCart(product._id)}
+                className="w-full bg-yellow-500 text-black font-semibold py-2 rounded hover:bg-yellow-400 transition"
+              >
+                Add to Cart
+              </button>
+              <button
+                onClick={() => handleToggleWishlist(product._id)}
+                className="w-full mt-2 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition"
+              >
+                Remove
+              </button>
             </div>
           ))}
         </div>

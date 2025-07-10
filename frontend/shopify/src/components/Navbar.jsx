@@ -65,7 +65,7 @@ export default function Navbar() {
           <div className="max-w-7xl mx-auto px-4 flex flex-wrap justify-between items-center">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <img src="images/Logo.png" alt="logo" className="h-8 w-8" />
+              <img src="images/Logo.webp" alt="logo" className="h-8 w-8" />
               <span className="text-2xl font-bold tracking-wide text-cyan-400">
                 SportsKart
               </span>
@@ -80,22 +80,32 @@ export default function Navbar() {
                   <Link to="/userdashboard" className="flex items-center gap-1 hover:text-yellow-300">
                     <FaTachometerAlt /> Dashboard
                   </Link>
-                  <Link to="/wishlist" className="relative flex items-center hover:text-pink-300">
-                    <FaHeart />
-                    {wishlistCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs px-1.5 py-0.5 rounded-full shadow">
-                        {wishlistCount}
-                      </span>
-                    )}
-                  </Link>
-                  <Link to="/cart" className="relative flex items-center hover:text-yellow-200">
-                    <FaShoppingCart />
-                    {cartCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs px-1.5 py-0.5 rounded-full shadow">
-                        {cartCount}
-                      </span>
-                    )}
-                  </Link>
+                  <Link
+  to="/wishlist"
+  className="relative flex items-center hover:text-pink-300"
+  aria-label="Wishlist"
+>
+  <FaHeart />
+  {wishlistCount > 0 && (
+    <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs px-1.5 py-0.5 rounded-full shadow">
+      {wishlistCount}
+    </span>
+  )}
+</Link>
+
+<Link
+  to="/cart"
+  className="relative flex items-center hover:text-yellow-200"
+  aria-label="Cart"
+>
+  <FaShoppingCart />
+  {cartCount > 0 && (
+    <span className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs px-1.5 py-0.5 rounded-full shadow">
+      {cartCount}
+    </span>
+  )}
+</Link>
+
 
                   {/* User Dropdown */}
                   <Menu as="div" className="relative inline-block text-left">
@@ -113,6 +123,18 @@ export default function Navbar() {
                               } group flex items-center w-full px-3 py-2 text-sm rounded`}
                             >
                               🧾 My Profile
+                            </Link>
+                          )}
+                        </Menu.Item>
+                        <Menu.Item>
+                          {({ active }) => (
+                            <Link
+                              to="/orders"
+                              className={`${
+                                active ? 'bg-blue-100 text-blue-900' : ''
+                              } group flex items-center w-full px-3 py-2 text-sm rounded`}
+                            >
+                              🚚 My Orders
                             </Link>
                           )}
                         </Menu.Item>

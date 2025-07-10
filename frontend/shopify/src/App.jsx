@@ -24,6 +24,7 @@ import CartPage from './pages/CartPage';
 import UserProfile from './pages/UserProfile';
 import UserOrders from './pages/UserOrders';
 import AdminOrders from './pages/AdminOrders';
+import OrderSummary from './pages/OrderSummary';
 
 
 function App() {
@@ -70,6 +71,7 @@ function App() {
   }
 />
 
+ <Route path="/ordersummary" element={<OrderSummary />} />
 
 
 

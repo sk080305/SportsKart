@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
@@ -20,9 +19,21 @@ const orderSchema = new mongoose.Schema({
       }
     }
   ],
+  address: {
+    fullName: { type: String, required: true },
+    phone: { type: String, required: true },
+    line: { type: String, required: true },
+    city: { type: String, required: true },
+    pincode: { type: String, required: true }
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['UPI', 'COD', 'Card'],
+    required: true
+  },
   status: {
     type: String,
-    enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered','Cancelled'],
+    enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'],
     default: 'Pending'
   }
 }, { timestamps: true });
